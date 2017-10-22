@@ -1,0 +1,32 @@
+{
+    "name": "tutorigo/laravel-ide-macros",
+    "description": "Generating a helper file for IDEs to support Laravel's macros.",
+    "keywords": ["laravel", "autocomplete", "ide", "macros", "helper", "phpstorm", "netbeans", "sublime", "codeintel", "phpdoc"],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Kristóf Morva",
+            "email": "kristof92@gmail.com"
+        }
+    ],
+    "require": {
+        "laravel/framework": "^5.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "Tutorigo\\LaravelMacroHelper\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Tutorigo\\LaravelMacroHelper\\IdeMacrosServiceProvider"
+            ]
+        }
+    },
+    "config": {
+        "preferred-install": "dist"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true
+}
