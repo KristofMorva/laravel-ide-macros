@@ -31,8 +31,6 @@ class IdeMacrosServiceProvider extends ServiceProvider
      */
     public function register()
     {
-        $this->mergeConfigFrom(
-            __DIR__ . '/../config/ide-macros.php', 'ide-macros'
-        );
+        $this->mergeConfigFrom(__DIR__ . '/../config/ide-macros.php', 'ide-macros');
     }
 }

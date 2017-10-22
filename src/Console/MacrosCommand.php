@@ -3,7 +3,6 @@
 namespace Tutorigo\LaravelMacroHelper\Console;
 
 use Illuminate\Console\Command;
-use Illuminate\Support\Traits\Macroable;
 
 class MacrosCommand extends Command
 {
@@ -11,7 +10,7 @@ class MacrosCommand extends Command
     protected $signature = 'ide-helper:macros';
 
     /** @var string The console command description */
-    protected $description = 'Generate IDE helper files for Laravel macros';
+    protected $description = 'Generate an IDE helper file for Laravel macros';
 
     /** @var array Laravel classes with Macroable support */
     protected $classes = [
@@ -51,11 +50,11 @@ class MacrosCommand extends Command
     {
         $classes = array_merge($this->classes, config('ide-macros.classes', []));
 
-        $file = fopen(base_path(config('ide-macros.filename')), 'w');
+        $fileName = config('ide-macros.filename');
+        $file = fopen(base_path($fileName), 'w');
         fwrite($file, "<?php" . PHP_EOL);
 
         foreach ($classes as $class) {
-            /** @var Macroable $class */
             $reflection = new \ReflectionClass($class);
             $property = $reflection->getProperty('macros');
             $property->setAccessible(true);
@@ -67,17 +66,17 @@ class MacrosCommand extends Command
 
             fwrite($file, "namespace " . $reflection->getNamespaceName() . " {" . PHP_EOL);
             fwrite($file, "    class " . $reflection->getShortName() . " {" . PHP_EOL);
+
             foreach ($macros as $name => $macro) {
                 $reflection = new \ReflectionFunction($macro);
                 if ($comment = $reflection->getDocComment()) {
                     fwrite($file, "        $comment" . PHP_EOL);
                 }
+
                 fwrite($file, "        public static function " . $name . "(");
 
-                $parameters = $reflection->getParameters();
-
                 $index = 0;
-                foreach ($parameters as $parameter) {
+                foreach ($reflection->getParameters() as $parameter) {
                     if ($index) {
                         fwrite($file, ", ");
                     }
@@ -97,5 +96,7 @@ class MacrosCommand extends Command
         }
 
         fclose($file);
+
+        $this->line($fileName . ' has been successfully generated.', 'info');
     }
 }
