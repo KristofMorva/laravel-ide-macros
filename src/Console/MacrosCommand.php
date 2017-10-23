@@ -56,11 +56,11 @@ class MacrosCommand extends Command
 
         foreach ($classes as $class) {
             $reflection = new \ReflectionClass($class);
-            if ($reflection->hasProperty('macros')) {
-                $property = $reflection->getProperty('macros');
-            } else {
+            if (!$reflection->hasProperty('macros')) {
                 continue;
             }
+
+            $property = $reflection->getProperty('macros');
             $property->setAccessible(true);
             $macros = $property->getValue();
 
