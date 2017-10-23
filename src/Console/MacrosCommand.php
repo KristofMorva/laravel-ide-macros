@@ -56,7 +56,11 @@ class MacrosCommand extends Command
 
         foreach ($classes as $class) {
             $reflection = new \ReflectionClass($class);
-            $property = $reflection->getProperty('macros');
+            if ($reflection->hasProperty('macros')) {
+                $property = $reflection->getProperty('macros');
+            } else {
+                continue;
+            }
             $property->setAccessible(true);
             $macros = $property->getValue();
 
