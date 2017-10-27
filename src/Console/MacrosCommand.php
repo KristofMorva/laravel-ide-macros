@@ -14,33 +14,33 @@ class MacrosCommand extends Command
 
     /** @var array Laravel classes with Macroable support */
     protected $classes = [
-        \Illuminate\Database\Schema\Blueprint::class,
-        \Illuminate\Support\Arr::class,
-        \Illuminate\Support\Carbon::class,
-        \Illuminate\Support\Collection::class,
-        \Illuminate\Console\Scheduling\Event::class,
-        \Illuminate\Database\Eloquent\FactoryBuilder::class,
-        \Illuminate\Filesystem\Filesystem::class,
-        \Illuminate\Mail\Mailer::class,
-        \Illuminate\Foundation\Console\PresetCommand::class,
-        \Illuminate\Routing\Redirector::class,
-        \Illuminate\Database\Eloquent\Relations\Relation::class,
-        \Illuminate\Cache\Repository::class,
-        \Illuminate\Routing\ResponseFactory::class,
-        \Illuminate\Routing\Route::class,
-        \Illuminate\Routing\Router::class,
-        \Illuminate\Validation\Rule::class,
-        \Illuminate\Support\Str::class,
-        \Illuminate\Foundation\Testing\TestResponse::class,
-        \Illuminate\Translation\Translator::class,
-        \Illuminate\Routing\UrlGenerator::class,
-        \Illuminate\Database\Query\Builder::class,
-        \Illuminate\Http\JsonResponse::class,
-        \Illuminate\Http\RedirectResponse::class,
-        \Illuminate\Auth\RequestGuard::class,
-        \Illuminate\Http\Response::class,
-        \Illuminate\Auth\SessionGuard::class,
-        \Illuminate\Http\UploadedFile::class,
+        '\Illuminate\Database\Schema\Blueprint',
+        '\Illuminate\Support\Arr',
+        '\Illuminate\Support\Carbon',
+        '\Illuminate\Support\Collection',
+        '\Illuminate\Console\Scheduling\Event',
+        '\Illuminate\Database\Eloquent\FactoryBuilder',
+        '\Illuminate\Filesystem\Filesystem',
+        '\Illuminate\Mail\Mailer',
+        '\Illuminate\Foundation\Console\PresetCommand',
+        '\Illuminate\Routing\Redirector',
+        '\Illuminate\Database\Eloquent\Relations\Relation',
+        '\Illuminate\Cache\Repository',
+        '\Illuminate\Routing\ResponseFactory',
+        '\Illuminate\Routing\Route',
+        '\Illuminate\Routing\Router',
+        '\Illuminate\Validation\Rule',
+        '\Illuminate\Support\Str',
+        '\Illuminate\Foundation\Testing\TestResponse',
+        '\Illuminate\Translation\Translator',
+        '\Illuminate\Routing\UrlGenerator',
+        '\Illuminate\Database\Query\Builder',
+        '\Illuminate\Http\JsonResponse',
+        '\Illuminate\Http\RedirectResponse',
+        '\Illuminate\Auth\RequestGuard',
+        '\Illuminate\Http\Response',
+        '\Illuminate\Auth\SessionGuard',
+        '\Illuminate\Http\UploadedFile',
     ];
 
     /**
@@ -55,6 +55,10 @@ class MacrosCommand extends Command
         fwrite($file, "<?php" . PHP_EOL);
 
         foreach ($classes as $class) {
+            if (!class_exists($class)) {
+                continue;
+            }
+
             $reflection = new \ReflectionClass($class);
             if (!$reflection->hasProperty('macros')) {
                 continue;
