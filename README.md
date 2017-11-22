@@ -16,7 +16,24 @@ php artisan vendor:publish --provider="Tutorigo\LaravelMacroHelper\IdeMacrosServ
 ```
 
 ## Usage
+
+### Generate helper file
 Run the following command to generate the macro IDE helpers:
 ```
 php artisan ide-helper:macros
+```
+
+### Use of non-static macros
+Macros can be both static (ie. `Route::sth()`) and non-static (ie. `Request::route()->sth()`). To distinct the two, use the `@instantiated` tag in the PHPDoc of macros, which depend on `$this`, for example:
+```
+/**
+ * Gets the amount of route parameters
+ *
+ * @return array
+ * @instantiated
+ */
+\Illuminate\Routing\Route::macro('parameterCount', function () {
+    /** @var \Illuminate\Routing\Route $this */
+    return count($this->parameters);
+});
 ```

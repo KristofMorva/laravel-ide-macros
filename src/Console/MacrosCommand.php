@@ -43,6 +43,12 @@ class MacrosCommand extends Command
         '\Illuminate\Http\UploadedFile',
     ];
 
+    /** @var resource */
+    protected $file;
+
+    /** @var int */
+    protected $indent = 0;
+
     /**
      * Execute the console command.
      */
@@ -51,8 +57,8 @@ class MacrosCommand extends Command
         $classes = array_merge($this->classes, config('ide-macros.classes', []));
 
         $fileName = config('ide-macros.filename');
-        $file = fopen(base_path($fileName), 'w');
-        fwrite($file, "<?php" . PHP_EOL);
+        $this->file = fopen(base_path($fileName), 'w');
+        $this->writeLine("<?php");
 
         foreach ($classes as $class) {
             if (!class_exists($class)) {
@@ -72,39 +78,105 @@ class MacrosCommand extends Command
                 continue;
             }
 
-            fwrite($file, "namespace " . $reflection->getNamespaceName() . " {" . PHP_EOL);
-            fwrite($file, "    class " . $reflection->getShortName() . " {" . PHP_EOL);
+            $this->generateNamespace($reflection->getNamespaceName(), function () use ($macros, $reflection) {
+                $this->generateClass($reflection->getShortName(), function () use ($macros) {
+                    foreach ($macros as $name => $macro) {
+                        $function = new \ReflectionFunction($macro);
+                        if ($comment = $function->getDocComment()) {
+                            $this->writeLine($comment, $this->indent);
 
-            foreach ($macros as $name => $macro) {
-                $reflection = new \ReflectionFunction($macro);
-                if ($comment = $reflection->getDocComment()) {
-                    fwrite($file, "        $comment" . PHP_EOL);
-                }
+                            if (strpos($comment, '@instantiated') !== false) {
+                                $this->generateFunction($name, $function->getParameters(), "public");
+                                continue;
+                            }
+                        }
 
-                fwrite($file, "        public static function " . $name . "(");
-
-                $index = 0;
-                foreach ($reflection->getParameters() as $parameter) {
-                    if ($index) {
-                        fwrite($file, ", ");
+                        $this->generateFunction($name, $function->getParameters(), "public static");
                     }
-
-                    fwrite($file, "$" . $parameter->getName());
-                    if ($parameter->isOptional()) {
-                        fwrite($file, " = " . var_export($parameter->getDefaultValue(), true));
-                    }
-
-                    $index++;
-                }
-
-                fwrite($file, ") { }" . PHP_EOL);
-            }
-
-            fwrite($file, "    }" . PHP_EOL . "}" . PHP_EOL);
+                });
+            });
         }
 
-        fclose($file);
+        fclose($this->file);
 
-        $this->line($fileName . ' has been successfully generated.', 'info');
+        $this->line("$fileName has been successfully generated.", 'info');
+    }
+
+    /**
+     * @param string $name
+     * @param null|Callable $callback
+     */
+    protected function generateNamespace($name, $callback = null)
+    {
+        $this->writeLine("namespace " . $name . " {", $this->indent);
+
+        if ($callback) {
+            $this->indent++;
+            $callback();
+            $this->indent--;
+        }
+
+        $this->writeLine("}", $this->indent);
+    }
+
+    /**
+     * @param string $name
+     * @param null|Callable $callback
+     */
+    protected function generateClass($name, $callback = null)
+    {
+        $this->writeLine("class " . $name . " {", $this->indent);
+
+        if ($callback) {
+            $this->indent++;
+            $callback();
+            $this->indent--;
+        }
+
+        $this->writeLine("}", $this->indent);
+    }
+
+    /**
+     * @param string $name
+     * @param array $parameters
+     * @param string $type
+     * @param null|Callable $callback
+     */
+    protected function generateFunction($name, $parameters, $type = '', $callback = null)
+    {
+        $this->write(($type ? "$type " : '') . "function $name(", $this->indent);
+
+        $index = 0;
+        foreach ($parameters as $parameter) {
+            if ($index) {
+                $this->write(", ");
+            }
+
+            $this->write("$" . $parameter->getName());
+            if ($parameter->isOptional()) {
+                $this->write(" = " . var_export($parameter->getDefaultValue(), true));
+            }
+
+            $index++;
+        }
+
+        $this->writeLine(") {");
+
+        if ($callback) {
+            $callback();
+        }
+
+        $this->writeLine();
+        $this->writeLine("}", $this->indent);
+    }
+
+    protected function write($string, $indent = 0)
+    {
+        fwrite($this->file, str_repeat('    ', $indent) . $string);
+    }
+
+    protected function writeLine($line = '', $indent = 0)
+    {
+        $this->write($line . PHP_EOL, $indent);
     }
 }
