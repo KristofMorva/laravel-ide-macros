@@ -17,6 +17,10 @@ class MacrosCommand extends Command
         '\Illuminate\Database\Schema\Blueprint',
         '\Illuminate\Support\Arr',
         '\Illuminate\Support\Carbon',
+        '\Carbon\Carbon',
+        '\Carbon\CarbonImmutable',
+        '\Carbon\CarbonInterval',
+        '\Carbon\CarbonPeriod',
         '\Illuminate\Support\Collection',
         '\Illuminate\Console\Scheduling\Event',
         '\Illuminate\Database\Eloquent\FactoryBuilder',
@@ -66,11 +70,15 @@ class MacrosCommand extends Command
             }
 
             $reflection = new \ReflectionClass($class);
-            if (!$reflection->hasProperty('macros')) {
-                continue;
+            $propertyName = 'macros';
+            if (!$reflection->hasProperty($propertyName)) {
+                $propertyName = 'globalMacros';
+                if (!$reflection->hasProperty($propertyName)) {
+                    continue;
+                }
             }
 
-            $property = $reflection->getProperty('macros');
+            $property = $reflection->getProperty($propertyName);
             $property->setAccessible(true);
             $macros = $property->getValue();
 
