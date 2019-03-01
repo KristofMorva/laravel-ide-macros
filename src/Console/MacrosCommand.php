@@ -7,7 +7,7 @@ use Illuminate\Console\Command;
 class MacrosCommand extends Command
 {
     /** @var string The name and signature of the console command */
-    protected $signature = 'ide-helper:macros';
+    protected $signature = 'ide-helper:macros {--filename=}';
 
     /** @var string The console command description */
     protected $description = 'Generate an IDE helper file for Laravel macros';
@@ -60,7 +60,7 @@ class MacrosCommand extends Command
     {
         $classes = array_merge($this->classes, config('ide-macros.classes', []));
 
-        $fileName = config('ide-macros.filename');
+        $fileName = $this->option('filename') ?: config('ide-macros.filename');
         $this->file = fopen(base_path($fileName), 'w');
         $this->writeLine("<?php");
 
