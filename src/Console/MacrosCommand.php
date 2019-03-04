@@ -89,7 +89,7 @@ class MacrosCommand extends Command
             $this->generateNamespace($reflection->getNamespaceName(), function () use ($macros, $reflection) {
                 $this->generateClass($reflection->getShortName(), function () use ($macros) {
                     foreach ($macros as $name => $macro) {
-                        if(is_array($macro)) {
+                        if (is_array($macro)) {
                             list($class, $method) = $macro;
                             $function = new \ReflectionMethod(is_object($class) ? get_class($class) : $class, $method);
                         } else {
