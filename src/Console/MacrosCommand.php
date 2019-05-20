@@ -7,7 +7,7 @@ use Illuminate\Console\Command;
 class MacrosCommand extends Command
 {
     /** @var string The name and signature of the console command */
-    protected $signature = 'ide-helper:macros';
+    protected $signature = 'ide-helper:macros {--filename=} {--filename-static=}';
 
     /** @var string The console command description */
     protected $description = 'Generate an IDE helper file for Laravel macros';
@@ -17,6 +17,10 @@ class MacrosCommand extends Command
         '\Illuminate\Database\Schema\Blueprint',
         '\Illuminate\Support\Arr',
         '\Illuminate\Support\Carbon',
+        '\Carbon\Carbon',
+        '\Carbon\CarbonImmutable',
+        '\Carbon\CarbonInterval',
+        '\Carbon\CarbonPeriod',
         '\Illuminate\Support\Collection',
         '\Illuminate\Console\Scheduling\Event',
         '\Illuminate\Database\Eloquent\FactoryBuilder',
@@ -56,10 +60,11 @@ class MacrosCommand extends Command
     {
         $classes = array_merge($this->classes, config('ide-macros.classes', []));
 
-        $fileName = config('ide-macros.filename') ?: '_ide_macros.php';
+        $fileName = $this->option('filename') ?: config('ide-macros.filename') ?: '_ide_macros.php';
+        $fileNameStatic = $this->option('filename-static') ?: config('ide-macros.filename_static') ?: preg_replace('/^(.*)(\.[^.]+)?$/U', '$1_static$2', $fileName);
         $files = [
             $fileName => false,
-            config('ide-macros.filename_static') ?: preg_replace('/^(.*)(\.[^.]+)?$/U', '$1_static$2', $fileName) => true,
+            $fileNameStatic => true,
         ];
         $macroVariableNames = config('ide-macros.variable_names') ?: ['macros', 'globalMacros'];
 
@@ -99,11 +104,11 @@ class MacrosCommand extends Command
                                 continue;
                             }
 
-                            try {
+                            if (is_array($macro)) {
+                                list($class, $method) = $macro;
+                                $function = new \ReflectionMethod(is_object($class) ? get_class($class) : $class, $method);
+                            } else {
                                 $function = new \ReflectionFunction($macro);
-                            } catch (\ReflectionException $e) {
-                                // Unsupported syntax
-                                continue;
                             }
 
                             $comment = $function->getDocComment();
@@ -180,11 +185,7 @@ class MacrosCommand extends Command
 
             $this->write("$" . $parameter->getName());
             if ($parameter->isOptional()) {
-                try {
-                    $this->write(" = ".var_export($parameter->getDefaultValue(), true));
-                } catch (\ReflectionException $e) {
-                    // Failed to retrieve the default value, ignore it
-                }
+                $this->write(" = ".var_export($parameter->getDefaultValue(), true));
             }
 
             $index++;
