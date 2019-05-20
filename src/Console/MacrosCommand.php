@@ -56,50 +56,76 @@ class MacrosCommand extends Command
     {
         $classes = array_merge($this->classes, config('ide-macros.classes', []));
 
-        $fileName = config('ide-macros.filename');
-        $this->file = fopen(base_path($fileName), 'w');
-        $this->writeLine("<?php");
+        $fileName = config('ide-macros.filename') ?: '_ide_macros.php';
+        $files = [
+            $fileName => false,
+            config('ide-macros.filename_static') ?: preg_replace('/^(.*)(\.[^.]+)?$/U', '$1_static$2', $fileName) => true,
+        ];
+        $macroVariableNames = config('ide-macros.variable_names') ?: ['macros', 'globalMacros'];
 
-        foreach ($classes as $class) {
-            if (!class_exists($class)) {
-                continue;
-            }
+        foreach ($files as $fileName => $handleStatic) {
+            $this->file = fopen(base_path($fileName), 'w');
+            $this->writeLine("<?php");
 
-            $reflection = new \ReflectionClass($class);
-            if (!$reflection->hasProperty('macros')) {
-                continue;
-            }
+            foreach ($classes as $class) {
+                if (!class_exists($class)) {
+                    continue;
+                }
 
-            $property = $reflection->getProperty('macros');
-            $property->setAccessible(true);
-            $macros = $property->getValue();
+                $reflection = new \ReflectionClass($class);
+                $macros = null;
 
-            if (!$macros) {
-                continue;
-            }
+                foreach ($macroVariableNames as $variableName) {
+                    if (!$reflection->hasProperty($variableName)) {
+                        continue;
+                    }
 
-            $this->generateNamespace($reflection->getNamespaceName(), function () use ($macros, $reflection) {
-                $this->generateClass($reflection->getShortName(), function () use ($macros) {
-                    foreach ($macros as $name => $macro) {
-                        $function = new \ReflectionFunction($macro);
-                        if ($comment = $function->getDocComment()) {
-                            $this->writeLine($comment, $this->indent);
+                    $property = $reflection->getProperty($variableName);
+                    $property->setAccessible(true);
+                    $macros = $property->getValue();
 
-                            if (strpos($comment, '@instantiated') !== false) {
-                                $this->generateFunction($name, $function->getParameters(), "public");
+                    break;
+                }
+
+                if (!$macros) {
+                    continue;
+                }
+
+                $this->generateNamespace($reflection->getNamespaceName(), function () use ($macros, $reflection, $handleStatic) {
+                    $this->generateClass($reflection->getShortName(), function () use ($macros, $handleStatic) {
+                        foreach ($macros as $name => $macro) {
+                            if ($name === '__construct' || $name === '__destruct') {
+                                // Ignore mixin constructor/desctructor
                                 continue;
                             }
+
+                            try {
+                                $function = new \ReflectionFunction($macro);
+                            } catch (\ReflectionException $e) {
+                                // Unsupported syntax
+                                continue;
+                            }
+
+                            $comment = $function->getDocComment();
+
+                            if ($comment && strpos($comment, '@' . ($handleStatic ? 'instantiated' : 'static')) !== false) {
+                                continue;
+                            }
+
+                            if ($comment) {
+                                $this->writeLine($comment, $this->indent);
+                            }
+
+                            $this->generateFunction($name, $function->getParameters(), "public" . ($handleStatic ? " static" : ""));
                         }
-
-                        $this->generateFunction($name, $function->getParameters(), "public static");
-                    }
+                    });
                 });
-            });
+            }
+
+            fclose($this->file);
+
+            $this->line("$fileName has been successfully generated.", 'info');
         }
-
-        fclose($this->file);
-
-        $this->line("$fileName has been successfully generated.", 'info');
     }
 
     /**
@@ -108,7 +134,7 @@ class MacrosCommand extends Command
      */
     protected function generateNamespace($name, $callback = null)
     {
-        $this->writeLine("namespace " . $name . " {", $this->indent);
+        $this->writeLine("namespace $name {", $this->indent);
 
         if ($callback) {
             $this->indent++;
@@ -125,7 +151,7 @@ class MacrosCommand extends Command
      */
     protected function generateClass($name, $callback = null)
     {
-        $this->writeLine("class " . $name . " {", $this->indent);
+        $this->writeLine("class $name {", $this->indent);
 
         if ($callback) {
             $this->indent++;
@@ -154,7 +180,11 @@ class MacrosCommand extends Command
 
             $this->write("$" . $parameter->getName());
             if ($parameter->isOptional()) {
-                $this->write(" = " . var_export($parameter->getDefaultValue(), true));
+                try {
+                    $this->write(" = ".var_export($parameter->getDefaultValue(), true));
+                } catch (\ReflectionException $e) {
+                    // Failed to retrieve the default value, ignore it
+                }
             }
 
             $index++;
