@@ -25,7 +25,7 @@ php artisan ide-helper:macros
 
 ### Use of non-static macros
 Macros can be both static (ie. `Route::sth()`) and non-static (ie. `Request::route()->sth()`). To distinct the two, use the `@instantiated` tag in the PHPDoc of macros, which depend on `$this`, and `@static` for those that doesn't for example:
-```
+```php
 /**
  * Gets the amount of route parameters (only instantiated)
  *
