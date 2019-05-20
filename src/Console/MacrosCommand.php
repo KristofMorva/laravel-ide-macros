@@ -93,7 +93,7 @@ class MacrosCommand extends Command
                             list($class, $method) = $macro;
                             $function = new \ReflectionMethod(is_object($class) ? get_class($class) : $class, $method);
                         } else {
-                            $function = new \ReflectionFunction($macro);
+                            $function = $macro instanceof \Closure ? new \ReflectionFunction($macro):new \ReflectionMethod($macro,'__invoke');
                         }
 
                         if ($comment = $function->getDocComment()) {
