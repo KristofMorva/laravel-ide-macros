@@ -165,9 +165,13 @@ class MacrosCommand extends Command
             if ($index) {
                 $this->write(", ");
             }
+            
+            if ($parameter->isVariadic()) {
+                $this->write('...');
+            }
 
             $this->write("$" . $parameter->getName());
-            if ($parameter->isOptional()) {
+            if ($parameter->isOptional() && !$parameter->isVariadic()) {
                 $this->write(" = " . var_export($parameter->getDefaultValue(), true));
             }
 
