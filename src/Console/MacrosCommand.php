@@ -152,7 +152,7 @@ class MacrosCommand extends Command
 
     /**
      * @param string $name
-     * @param array $parameters
+     * @param \ReflectionParameter[] $parameters
      * @param string $type
      * @param null|string $returnType
      * @param null|Callable $callback
@@ -163,7 +163,6 @@ class MacrosCommand extends Command
         $this->write(($type ? "$type " : '') . "function $name(", $this->indent);
 
         $index = 0;
-        /* @var $parameters \ReflectionParameter[] */
         foreach ($parameters as $parameter) {
             if ($index) {
                 $this->write(", ");
