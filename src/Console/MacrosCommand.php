@@ -182,7 +182,7 @@ class MacrosCommand extends Command
 
         $this->write(")");
         if ($returnType) {
-            $this->write(": " . $returnType);
+            $this->write(": $returnType");
         }
         $this->writeLine(" {");
 
