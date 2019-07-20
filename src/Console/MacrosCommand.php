@@ -161,9 +161,14 @@ class MacrosCommand extends Command
         $this->write(($type ? "$type " : '') . "function $name(", $this->indent);
 
         $index = 0;
+        /* @var $parameters \ReflectionParameter[] */
         foreach ($parameters as $parameter) {
             if ($index) {
                 $this->write(", ");
+            }
+
+            if ($parameter->hasType()) {
+                $this->write($parameter->getType() . " ");
             }
 
             $this->write("$" . $parameter->getName());
