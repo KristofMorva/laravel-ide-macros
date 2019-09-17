@@ -92,8 +92,10 @@ class MacrosCommand extends Command
                         if (is_array($macro)) {
                             list($class, $method) = $macro;
                             $function = new \ReflectionMethod(is_object($class) ? get_class($class) : $class, $method);
+                        } else if ($macro instanceof \Closure) {
+                            $function = new \ReflectionFunction($macro);
                         } else {
-                            $function = $macro instanceof \Closure ? new \ReflectionFunction($macro):new \ReflectionMethod($macro,'__invoke');
+                            $function = new \ReflectionMethod(is_object($macro) ? get_class($macro) : $class, '__invoke');
                         }
 
                         if ($comment = $function->getDocComment()) {
