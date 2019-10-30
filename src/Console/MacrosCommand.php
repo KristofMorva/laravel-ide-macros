@@ -97,17 +97,19 @@ class MacrosCommand extends Command
                         } else {
                             $function = new \ReflectionMethod(is_object($macro) ? get_class($macro) : $class, '__invoke');
                         }
+                        
+                        $returnType = $function->getReturnType() ? "\\" . $function->getReturnType() : '';
 
                         if ($comment = $function->getDocComment()) {
                             $this->writeLine($comment, $this->indent);
 
                             if (strpos($comment, '@instantiated') !== false) {
-                                $this->generateFunction($name, $function->getParameters(), "public", $function->getReturnType());
+                                $this->generateFunction($name, $function->getParameters(), "public", $returnType);
                                 continue;
                             }
                         }
 
-                        $this->generateFunction($name, $function->getParameters(), "public static", $function->getReturnType());
+                        $this->generateFunction($name, $function->getParameters(), "public static", $returnType);
                     }
                 });
             });
