@@ -98,7 +98,8 @@ class MacrosCommand extends Command
                             $function = new \ReflectionMethod(is_object($macro) ? get_class($macro) : $class, '__invoke');
                         }
                         
-                        $returnType = $function->getReturnType() ? "\\" . $function->getReturnType() : '';
+                        $returnType = $function->getReturnType();
+                        $returnType = class_exists($returnType) ? "\\" . $returnType : $returnType;
 
                         if ($comment = $function->getDocComment()) {
                             $this->writeLine($comment, $this->indent);
