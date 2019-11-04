@@ -181,6 +181,10 @@ class MacrosCommand extends Command
             }
 
             if ($parameter->hasType()) {
+                if (!$parameter->getType()->isBuiltin()) {
+                    $this->write("\\");
+                }
+                
                 $this->write($parameter->getType() . " ");
             }
 
