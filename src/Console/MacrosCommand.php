@@ -124,7 +124,7 @@ class MacrosCommand extends Command
      */
     protected function generateNamespace($name, $callback = null)
     {
-        $this->writeLine("namespace " . $name . " {", $this->indent);
+        $this->writeLine("\nnamespace " . $name . " {", $this->indent);
 
         if ($callback) {
             $this->indent++;
