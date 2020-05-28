@@ -198,8 +198,8 @@ class MacrosCommand extends Command
             if ($returnType) {
                 $this->write(": \\$returnType");
             }
-        } elseif ($returnType instanceof \ReflectionNamedType){
-            $this->write(": \\{$returnType->getName()}");
+        } elseif ($returnType instanceof \ReflectionNamedType) {
+            $this->write(": \\" . $returnType->getName());
         }
         $this->writeLine(" {");
 
