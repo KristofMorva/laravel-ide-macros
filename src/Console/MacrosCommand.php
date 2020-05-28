@@ -169,13 +169,20 @@ class MacrosCommand extends Command
             if ($index) {
                 $this->write(", ");
             }
-            
+
             if ($parameter->isVariadic()) {
                 $this->write('...');
             }
 
             if ($parameter->hasType()) {
-                $this->write($parameter->getType() . " ");
+                if (version_compare(PHP_VERSION, '7.1', '<')) {
+                    $this->write($parameter->getType() . " ");
+                } else {
+                    $paramType = $parameter->getType();
+                    if ($paramType instanceof \ReflectionNamedType) {
+                        $this->write($paramType->getName() . " ");
+                    }
+                }
             }
 
             $this->write("$" . $parameter->getName());
@@ -187,8 +194,12 @@ class MacrosCommand extends Command
         }
 
         $this->write(")");
-        if ($returnType) {
-            $this->write(": $returnType");
+        if (version_compare(PHP_VERSION, '7.1', '<')) {
+            if ($returnType) {
+                $this->write(": $returnType");
+            }
+        } elseif ($returnType instanceof \ReflectionNamedType){
+            $this->write(": {$returnType->getName()}");
         }
         $this->writeLine(" {");
 
