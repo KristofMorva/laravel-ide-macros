@@ -196,10 +196,10 @@ class MacrosCommand extends Command
         $this->write(")");
         if (version_compare(PHP_VERSION, '7.1', '<')) {
             if ($returnType) {
-                $this->write(": $returnType");
+                $this->write(": \\$returnType");
             }
         } elseif ($returnType instanceof \ReflectionNamedType){
-            $this->write(": {$returnType->getName()}");
+            $this->write(": \\{$returnType->getName()}");
         }
         $this->writeLine(" {");
 
