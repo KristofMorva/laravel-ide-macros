@@ -180,6 +180,9 @@ class MacrosCommand extends Command
                 } else {
                     $paramType = $parameter->getType();
                     if ($paramType instanceof \ReflectionNamedType) {
+                        if ($paramType->allowsNull()) {
+                            $this->write("?");
+                        }
                         $this->write($paramType->getName() . " ");
                     }
                 }
@@ -203,11 +206,14 @@ class MacrosCommand extends Command
                 }
             }
         } elseif ($returnType instanceof \ReflectionNamedType) {
-            if (class_exists($returnType->getName())) {
-                $this->write(": \\" . $returnType->getName());
-            } else {
-                $this->write(": " . $returnType->getName());
+            $this->write(": ");
+            if ($returnType->allowsNull()) {
+                $this->write("?");
             }
+            if (class_exists($returnType->getName())) {
+                $this->write("\\");
+            }
+            $this->write($returnType->getName());
         }
         $this->writeLine(" {");
 
