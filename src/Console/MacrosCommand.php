@@ -3,6 +3,7 @@
 namespace Tutorigo\LaravelMacroHelper\Console;
 
 use Illuminate\Console\Command;
+use Illuminate\Support\Str;
 
 class MacrosCommand extends Command
 {
@@ -102,12 +103,16 @@ class MacrosCommand extends Command
                             $this->writeLine($comment, $this->indent);
 
                             if (strpos($comment, '@instantiated') !== false) {
-                                $this->generateFunction($name, $function->getParameters(), "public", $function->getReturnType());
+                                $this->generateFunction($name, $function->getParameters(), "public", $function->getReturnType(), function () use ($function) {
+                                    $this->write('// @see: ' . $this->getFileName($function) . ':' . $function->getStartLine(), $this->indent);
+                                });
                                 continue;
                             }
                         }
 
-                        $this->generateFunction($name, $function->getParameters(), "public static", $function->getReturnType());
+                        $this->generateFunction($name, $function->getParameters(), "public static", $function->getReturnType(), function () use ($function) {
+                            $this->write('// @see: ' . $this->getFileName($function) . ':' . $function->getStartLine(), $this->indent);
+                        });
                     }
                 });
             });
@@ -218,11 +223,31 @@ class MacrosCommand extends Command
         $this->writeLine(" {");
 
         if ($callback) {
+            $this->indent++;
             $callback();
+            $this->indent--;
         }
 
         $this->writeLine();
         $this->writeLine("}", $this->indent);
+    }
+
+    /**
+     * @param  \ReflectionMethod|\ReflectionFunction $function
+     *
+     * @return string
+     */
+    protected function getFileName($function)
+    {
+        if (Str::contains($function->getFileName(), 'vendor')) {
+            return 'vendor' . Str::after($function->getFileName(), 'vendor');
+        }
+
+        if (Str::contains($function->getFileName(), 'app')) {
+            return 'app' . Str::after($function->getFileName(), 'app');
+        }
+
+        return $function->getFileName();
     }
 
     protected function write($string, $indent = 0)
