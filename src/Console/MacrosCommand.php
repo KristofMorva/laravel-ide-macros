@@ -180,6 +180,9 @@ class MacrosCommand extends Command
                 } else {
                     $paramType = $parameter->getType();
                     if ($paramType instanceof \ReflectionNamedType) {
+                        if ($paramType->allowsNull()) {
+                            $this->write("?");
+                        }
                         $this->write($paramType->getName() . " ");
                     }
                 }
@@ -196,10 +199,21 @@ class MacrosCommand extends Command
         $this->write(")");
         if (version_compare(PHP_VERSION, '7.1', '<')) {
             if ($returnType) {
-                $this->write(": \\$returnType");
+                if (class_exists($returnType)) {
+                    $this->write(": \\$returnType");
+                } else {
+                    $this->write(": $returnType");
+                }
             }
         } elseif ($returnType instanceof \ReflectionNamedType) {
-            $this->write(": \\" . $returnType->getName());
+            $this->write(": ");
+            if ($returnType->allowsNull()) {
+                $this->write("?");
+            }
+            if (class_exists($returnType->getName())) {
+                $this->write("\\");
+            }
+            $this->write($returnType->getName());
         }
         $this->writeLine(" {");
 
