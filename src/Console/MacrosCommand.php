@@ -66,15 +66,15 @@ class MacrosCommand extends Command
         $this->writeLine("<?php");
 
         foreach ($classes as $class) {
-            if (!class_exists($class)) {
+            if (! class_exists($class)) {
                 continue;
             }
 
             $reflection = new \ReflectionClass($class);
             $propertyName = 'macros';
-            if (!$reflection->hasProperty($propertyName)) {
+            if (! $reflection->hasProperty($propertyName)) {
                 $propertyName = 'globalMacros';
-                if (!$reflection->hasProperty($propertyName)) {
+                if (! $reflection->hasProperty($propertyName)) {
                     continue;
                 }
             }
@@ -83,7 +83,7 @@ class MacrosCommand extends Command
             $property->setAccessible(true);
             $macros = $property->getValue();
 
-            if (!$macros) {
+            if (! $macros) {
                 continue;
             }
 
@@ -93,7 +93,7 @@ class MacrosCommand extends Command
                         if (is_array($macro)) {
                             list($class, $method) = $macro;
                             $function = new \ReflectionMethod(is_object($class) ? get_class($class) : $class, $method);
-                        } else if ($macro instanceof \Closure) {
+                        } elseif ($macro instanceof \Closure) {
                             $function = new \ReflectionFunction($macro);
                         } else {
                             $function = new \ReflectionMethod(is_object($macro) ? get_class($macro) : $class, '__invoke');
@@ -124,8 +124,8 @@ class MacrosCommand extends Command
     }
 
     /**
-     * @param string $name
-     * @param null|Callable $callback
+     * @param  string $name
+     * @param  null|Callable $callback
      */
     protected function generateNamespace($name, $callback = null)
     {
@@ -141,8 +141,8 @@ class MacrosCommand extends Command
     }
 
     /**
-     * @param string $name
-     * @param null|Callable $callback
+     * @param  string $name
+     * @param  null|Callable $callback
      */
     protected function generateClass($name, $callback = null)
     {
@@ -158,11 +158,12 @@ class MacrosCommand extends Command
     }
 
     /**
-     * @param string $name
-     * @param \ReflectionParameter[] $parameters
-     * @param string $type
-     * @param null|string $returnType
-     * @param null|Callable $callback
+     * @param  string $name
+     * @param  \ReflectionParameter[] $parameters
+     * @param  string $type
+     * @param  null|string $returnType
+     * @param  null|Callable $callback
+     *
      * @throws \ReflectionException
      */
     protected function generateFunction($name, $parameters, $type = '', $returnType = null, $callback = null)
@@ -194,7 +195,7 @@ class MacrosCommand extends Command
             }
 
             $this->write("$" . $parameter->getName());
-            if ($parameter->isOptional() && !$parameter->isVariadic()) {
+            if ($parameter->isOptional() && ! $parameter->isVariadic()) {
                 $this->write(" = " . var_export($parameter->getDefaultValue(), true));
             }
 
