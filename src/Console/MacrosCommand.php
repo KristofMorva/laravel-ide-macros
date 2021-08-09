@@ -45,6 +45,8 @@ class MacrosCommand extends Command
         '\Illuminate\Http\Response',
         '\Illuminate\Auth\SessionGuard',
         '\Illuminate\Http\UploadedFile',
+        '\Illuminate\Testing\TestResponse',
+        '\Illuminate\Testing\TestView',
     ];
 
     /** @var resource */
