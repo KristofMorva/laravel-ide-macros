@@ -210,7 +210,7 @@ class MacrosCommand extends Command
             }
         } elseif ($returnType instanceof \ReflectionNamedType) {
             $this->write(": ");
-            if ($returnType->allowsNull()) {
+            if ($returnType->allowsNull() && $returnType->getName() !== 'mixed') {
                 $this->write("?");
             }
             if (class_exists($returnType->getName())) {
