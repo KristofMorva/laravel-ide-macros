@@ -92,6 +92,11 @@ class MacrosCommand extends Command
             $this->generateNamespace($reflection->getNamespaceName(), function () use ($macros, $reflection) {
                 $this->generateClass($reflection->getShortName(), function () use ($macros) {
                     foreach ($macros as $name => $macro) {
+                        if (!$macro) {
+                            // To ensure manipulating macro and not falsy value such as "null", as "false"
+                            continue;
+                        }
+
                         if (is_array($macro)) {
                             list($class, $method) = $macro;
                             $function = new \ReflectionMethod(is_object($class) ? get_class($class) : $class, $method);
@@ -186,7 +191,10 @@ class MacrosCommand extends Command
                         if ($paramType->allowsNull()) {
                             $this->write("?");
                         }
-                        $this->write($paramType->getName() . " ");
+
+                        $paramTypeName = $paramType->getName();
+                        $paramTypeNameWrited = class_exists($paramTypeName) ? "\\" . $paramTypeName : $paramTypeName;
+                        $this->write($paramTypeNameWrited . " ");
                     }
                 }
             }
