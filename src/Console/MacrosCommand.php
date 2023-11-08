@@ -3,6 +3,7 @@
 namespace Tutorigo\LaravelMacroHelper\Console;
 
 use Illuminate\Console\Command;
+use ReflectionException;
 
 class MacrosCommand extends Command
 {
@@ -98,7 +99,11 @@ class MacrosCommand extends Command
                         } else if ($macro instanceof \Closure) {
                             $function = new \ReflectionFunction($macro);
                         } else {
-                            $function = new \ReflectionMethod(is_object($macro) ? get_class($macro) : $class, '__invoke');
+                            try {
+                                $function = new \ReflectionMethod(is_object($macro) ? get_class($macro) : $class, '__invoke');
+                            } catch (ReflectionException $e) {
+                                continue;
+                            }
                         }
 
                         if ($comment = $function->getDocComment()) {
